@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data: https:; connect-src https:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'">
+<title>NOVA Browser</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ شريط التبويبات + تحكم النافذة ============ -->
+  <header id="titlebar">
+    <div id="brand" title="NOVA Browser">
+      <svg viewBox="0 0 100 100" class="brand-mark" aria-hidden="true">
+        <defs>
+          <linearGradient id="lg-brand" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent2)"/>
+          </linearGradient>
+        </defs>
+        <path d="M50 4 L61 39 L96 50 L61 61 L50 96 L39 61 L4 50 L39 39 Z" fill="url(#lg-brand)"/>
+        <circle cx="78" cy="20" r="6" fill="url(#lg-brand)"/>
+      </svg>
+      <span class="brand-name">NOVA</span>
+    </div>
+
+    <div id="tabs" role="tablist" aria-label="التبويبات"></div>
+
+    <button id="new-tab-btn" class="icon-btn" title="تبويب جديد (Ctrl+T)" aria-label="تبويب جديد">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+
+    <div class="drag-spacer"></div>
+
+    <div class="win-controls" aria-label="تحكم النافذة">
+      <button id="win-min" class="win-btn" title="تصغير" aria-label="تصغير">
+        <svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>
+      </button>
+      <button id="win-max" class="win-btn" title="تكبير / استعادة" aria-label="تكبير أو استعادة">
+        <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+      </button>
+      <button id="win-close" class="win-btn danger" title="إغلاق" aria-label="إغلاق">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ شريط التنقل وشريط العنوان الذكي ============ -->
+  <nav id="nav-bar" aria-label="التنقل">
+    <button id="back-btn" class="icon-btn" title="رجوع" aria-label="رجوع">
+      <svg viewBox="0 0 24 24" class="flip-rtl"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>
+    </button>
+    <button id="fwd-btn" class="icon-btn" title="تقدّم" aria-label="تقدّم">
+      <svg viewBox="0 0 24 24" class="flip-rtl"><path d="M9.5 5.5L16 12l-6.5 6.5"/></svg>
+    </button>
+    <button id="reload-btn" class="icon-btn" title="إعادة تحميل" aria-label="إعادة تحميل">
+      <svg viewBox="0 0 24 24" id="reload-icon"><path d="M20 12a8 8 0 1 1-2.34-5.66M20 3v4h-4"/></svg>
+      <svg viewBox="0 0 24 24" id="stop-icon" hidden><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button id="home-btn" class="icon-btn" title="الصفحة الرئيسية" aria-label="الصفحة الرئيسية">
+      <svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z"/></svg>
+    </button>
+
+    <div id="omnibox-wrap">
+      <span id="lock-icon" title="حالة الاتصال" aria-label="حالة الاتصال"></span>
+      <input id="omnibox" type="text" autocomplete="off" spellcheck="false"
+             placeholder="ابحث أو اكتب عنوان موقع…" aria-label="شريط العنوان والبحث">
+      <button id="zoom-chip" hidden title="إعادة تعيين التكبير (Ctrl+0)">100%</button>
+      <button id="bookmark-btn" class="icon-btn small" title="حفظ في الإشارات المرجعية (Ctrl+D)" aria-label="إشارة مرجعية">
+        <svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg>
+      </button>
+    </div>
+
+    <span id="incognito-badge" hidden>
+      <svg viewBox="0 0 24 24"><path d="M3 14a9 5 0 0 1 18 0c0 3-4 4-6 2.5A4.5 4.5 0 0 1 12 15a4.5 4.5 0 0 1-3 1.5C7 18 3 17 3 14zM12 5a9 5 0 0 1 8.6 3H3.4A9 5 0 0 1 12 5z"/></svg>
+      متخفٍ
+    </span>
+
+    <button id="downloads-btn" class="icon-btn" title="التنزيلات (Ctrl+J)" aria-label="التنزيلات">
+      <svg viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></svg>
+      <span id="downloads-dot" hidden></span>
+    </button>
+    <button id="bookmarks-btn" class="icon-btn" title="الإشارات المرجعية" aria-label="الإشارات المرجعية">
+      <svg viewBox="0 0 24 24"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4-6 4V5a1 1 0 0 1 1-1z"/></svg>
+    </button>
+    <button id="history-btn" class="icon-btn" title="سجل التصفح (Ctrl+H)" aria-label="سجل التصفح">
+      <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 2.3 5.6M4 12H2.5M4 12l2-2M12 8v4l3 2"/></svg>
+    </button>
+    <button id="menu-btn" class="icon-btn accent-btn" title="مركز تحكم NOVA" aria-label="مركز التحكم والإعدادات">
+      <svg viewBox="0 0 24 24"><path d="M5 7h9M18 7h1M5 12h3M12 12h7M5 17h11M20 17h-1"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>
+    </button>
+    <button id="sidebar-toggle" class="icon-btn" title="الشريط الجانبي للإشارات (Ctrl+B)" aria-label="الشريط الجانبي للإشارات">
+      <svg viewBox="0 0 24 24"><path d="M3 10h18M3 14h18M3 6h6M21 6h-6"/></svg>
+    </button>
+  </nav>
+
+  <div id="progress-bar"><div id="progress-fill"></div></div>
+  <div id="suggestions" role="listbox" aria-label="الاقتراحات" hidden></div>
+
+  <!-- ============ منطقة المحتوى ============ -->
+  <main id="content">
+    <div id="webviews"></div>
+
+    <!-- الصفحة الرئيسية -->
+    <section id="home-page" aria-label="الصفحة الرئيسية">
+      <canvas id="bg-canvas" aria-hidden="true"></canvas>
+      <div class="Aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="home-inner">
+        <svg viewBox="0 0 100 100" class="home-logo anim-item" aria-hidden="true">
+          <defs>
+            <linearGradient id="lg-home" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="var(--accent)"/><stop offset="1" stop-color="var(--accent2)"/>
+            </linearGradient>
+          </defs>
+          <path d="M50 4 L61 39 L96 50 L61 61 L50 96 L39 61 L4 50 L39 39 Z" fill="url(#lg-home)"/>
+          <circle cx="78" cy="20" r="6" fill="url(#lg-home)"/>
+        </svg>
+        <h1 class="home-title anim-item">NOVA</h1>
+        <p id="home-clock" class="anim-item"></p>
+        <p id="incognito-note" class="anim-item" hidden>أنت في وضع التصفح المتخفي — لن يُحفظ سجل التصفح أو الجلسة في هذه النافذة.</p>
+
+        <form id="home-search" class="anim-item" role="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="home-search-input" type="text" autocomplete="off" spellcheck="false"
+                 placeholder="ابحث في الويب أو اكتب عنوانًا…" aria-label="بحث">
+        </form>
+
+        <div id="shortcuts" class="anim-item" aria-label="اختصارات المواقع"></div>
+      </div>
+    </section>
+
+    <!-- صفحة خطأ التحميل -->
+    <section id="error-page" hidden>
+      <div class="error-card">
+        <svg viewBox="0 0 24 24" class="error-icon"><path d="M12 4L2.5 20.5h19z"/><path d="M12 10v4.5M12 17.4v.1"/></svg>
+        <h2 id="error-title">تعذّر تحميل الصفحة</h2>
+        <p id="error-desc"></p>
+        <p id="error-url"></p>
+        <div class="error-actions">
+          <button id="error-retry" class="btn primary">إعادة المحاولة</button>
+          <button id="error-home" class="btn">الصفحة الرئيسية</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- تُستخدم فقط عند فتح الواجهة خارج Electron (معاينة تصميم) -->
+    <section id="demo-page" hidden>
+      <div class="error-card">
+        <h2>وضع معاينة الواجهة</h2>
+        <p>أنت تعرض واجهة NOVA داخل متصفح عادي. عرض صفحات الويب الحقيقية يعمل داخل تطبيق
+           Electron عبر محرك Chromium — شغّل المشروع بأمر <code>npm start</code>.</p>
+        <p id="demo-url"></p>
+        <div class="error-actions">
+          <button id="demo-open" class="btn primary">فتح الرابط في متصفحك الحالي</button>
+          <button id="demo-home" class="btn">الصفحة الرئيسية</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- شريط البحث داخل الصفحة -->
+    <div id="find-bar" hidden>
+      <input id="find-input" type="text" placeholder="البحث داخل الصفحة…" aria-label="البحث داخل الصفحة">
+      <span id="find-count"></span>
+      <button id="find-prev" class="icon-btn small" title="السابق" aria-label="النتيجة السابقة">
+        <svg viewBox="0 0 24 24"><path d="M6 14.5L12 8.5l6 6"/></svg>
+      </button>
+      <button id="find-next" class="icon-btn small" title="التالي" aria-label="النتيجة التالية">
+        <svg viewBox="0 0 24 24"><path d="M6 9.5l6 6 6-6"/></svg>
+      </button>
+      <button id="find-close" class="icon-btn small" title="إغلاق (Esc)" aria-label="إغلاق البحث">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </main>
+
+  <!-- ============ مركز التحكم العائم ============ -->
+  <div id="backdrop" hidden></div>
+  <aside id="drawer" hidden aria-label="مركز تحكم NOVA">
+    <div class="drawer-head">
+      <div class="drawer-tabs" role="tablist" aria-label="أقسام مركز التحكم">
+        <button class="drawer-tab active" data-view="settings" role="tab">المظهر والإعدادات</button>
+        <button class="drawer-tab" data-view="bookmarks" role="tab">الإشارات</button>
+        <button class="drawer-tab" data-view="history" role="tab">السجل</button>
+        <button class="drawer-tab" data-view="downloads" role="tab">التنزيلات</button>
+      </div>
+      <button id="drawer-close" class="icon-btn small" title="إغلاق (Esc)" aria-label="إغلاق مركز التحكم">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <!-- الإعدادات -->
+    <div class="drawer-view" id="view-settings">
+      <div class="group">
+        <h3>المظهر</h3>
+        <div class="row spaced">
+          <span>السمة</span>
+          <div class="segmented" id="theme-seg">
+            <button data-theme-val="dark">داكن</button>
+            <button data-theme-val="light">فاتح</button>
+            <button data-theme-val="auto">تلقائي</button>
+          </div>
+        </div>
+        <div class="row spaced">
+          <span>لون التمييز</span>
+          <div class="swatches" id="accent-swatches">
+            <button class="swatch" data-accent="violet" style="--c1:#7c5cff;--c2:#38b6ff" title="بنفسجي" aria-label="بنفسجي"></button>
+            <button class="swatch" data-accent="blue" style="--c1:#2f7bff;--c2:#35e0ff" title="أزرق كهربائي" aria-label="أزرق كهربائي"></button>
+            <button class="swatch" data-accent="teal" style="--c1:#00c2a8;--c2:#4dd0ff" title="فيروزي" aria-label="فيروزي"></button>
+            <button class="swatch" data-accent="pink" style="--c1:#ff5ca8;--c2:#a86bff" title="وردي" aria-label="وردي"></button>
+            <button class="swatch" data-accent="amber" style="--c1:#ff9a3d;--c2:#ffd25c" title="كهرماني" aria-label="كهرماني"></button>
+          </div>
+        </div>
+        <div class="row spaced">
+          <span>حجم الواجهة</span>
+          <span class="inline">
+            <input id="set-ui-zoom" type="range" min="0.85" max="1.2" step="0.05">
+            <b id="ui-zoom-val">100%</b>
+          </span>
+        </div>
+        <label class="row switch-row">
+          <span>الرسوم المتحركة السلسة</span>
+          <span class="switch"><input id="set-animations" type="checkbox"><i></i></span>
+        </label>
+        <label class="row switch-row">
+          <span>وضع منخفض استهلاك الموارد</span>
+          <span class="switch"><input id="set-low-resource" type="checkbox"><i></i></span>
+        </label>
+      </div>
+
+      <div class="group">
+        <h3>خلفية الصفحة الرئيسية</h3>
+        <div class="bg-grid" id="bg-grid">
+          <button class="bg-card bg-prev-gradient" data-bg="gradient">تدرّج متحرك</button>
+          <button class="bg-card bg-prev-geo" data-bg="geometric">شبكة هندسية</button>
+          <button class="bg-card bg-prev-Aurora" data-bg="Aurora">شفق هادئ</button>
+          <button class="bg-card bg-prev-solid" data-bg="solid">لون ثابت</button>
+          <button class="bg-card bg-prev-image" data-bg="image">صورتك الخاصة</button>
+        </div>
+        <div class="row spaced" id="bg-solid-row" hidden>
+          <span>اختر اللون</span><input id="bg-color" type="color" value="#141a3a">
+        </div>
+        <div class="row spaced" id="bg-image-row" hidden>
+          <span>اختر صورة من جهازك</span>
+          <label class="btn small file-btn">استعراض…<input id="bg-file" type="file" accept="image/*" hidden></label>
+        </div>
+      </div>
+
+      <div class="group">
+        <h3>التصفح والبحث</h3>
+        <div class="row spaced">
+          <span>محرك البحث</span>
+          <select id="set-engine">
+            <option value="google">Google</option>
+            <option value="duckduckgo">DuckDuckGo</option>
+            <option value="bing">Bing</option>
+            <option value="brave">Brave</option>
+          </select>
+        </div>
+        <label class="row switch-row">
+          <span>اقتراحات البحث أثناء الكتابة</span>
+          <span class="switch"><input id="set-suggestions" type="checkbox"><i></i></span>
+        </label>
+        <label class="row switch-row">
+          <span>استعادة تبويبات الجلسة السابقة عند البدء</span>
+          <span class="switch"><input id="set-restore" type="checkbox"><i></i></span>
+        </label>
+        <label class="row switch-row">
+          <span>تسجيل سجل التصفح</span>
+          <span class="switch"><input id="set-record-history" type="checkbox"><i></i></span>
+        </label>
+        <button id="btn-incognito" class="btn wide">فتح نافذة تصفح متخفٍ جديدة (Ctrl+Shift+N)</button>
+      </div>
+
+      <div class="group">
+        <h3>الخصوصية والأمان</h3>
+        <p class="hint">تطلب المواقع إذنك دائمًا قبل استخدام الكاميرا أو الميكروفون أو الموقع.
+          لا يجمع NOVA أي بيانات تصفح ولا يرسلها لأي جهة.</p>
+        <div id="adblock-indicator" style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:13px;margin-bottom:12px;">
+          <span style="width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);"></span>
+          <span>محظور oggi: <span id="adblock-count" style="color:var(--ok);font-weight:700;">0</span> إعلان/متعقب</span>
+          <label style="margin-inline-start:auto;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="adblock-toggle" style="accent-color:var(--accent);" checked>
+            <span id="adblock-toggle-label">مانع الإعلانات</span>
+          </label>
+        </div>
+        <button id="btn-incognito" class="btn wide">فتح نافذة تصفح متخفٍ جديدة (Ctrl+Shift+N)</button>
+        <button id="btn-clear-history" class="btn wide">مسح سجل التصفح</button>
+        <button id="btn-clear-sitedata" class="btn wide">مسح بيانات المواقع وذاكرة التخزين المؤقت</button>
+        <button id="btn-open-downloads-folder" class="btn wide">فتح مجلد التنزيلات</button>
+      </div>
+
+      <div class="group">
+        <h3>اختصارات لوحة المفاتيح</h3>
+        <ul class="keys">
+          <li><kbd>Ctrl+T</kbd> تبويب جديد</li>
+          <li><kbd>Ctrl+W</kbd> إغلاق التبويب</li>
+          <li><kbd>Ctrl+Shift+T</kbd> استعادة تبويب مغلق</li>
+          <li><kbd>Ctrl+Tab</kbd> التبويب التالي</li>
+          <li><kbd>Ctrl+L</kbd> شريط العنوان</li>
+          <li><kbd>Ctrl+F</kbd> بحث داخل الصفحة</li>
+          <li><kbd>Ctrl+D</kbd> إشارة مرجعية</li>
+          <li><kbd>Ctrl+H</kbd> السجل</li>
+          <li><kbd>Ctrl+J</kbd> التنزيلات</li>
+          <li><kbd>Ctrl+Shift+N</kbd> نافذة متخفية</li>
+          <li><kbd>Ctrl+ + / - / 0</kbd> التكبير</li>
+          <li><kbd>F11</kbd> ملء الشاشة</li>
+        </ul>
+      </div>
+
+      <div class="group about">
+        <h3>حول</h3>
+        <p><b>NOVA Browser</b> — إصدار <span id="app-version">1.0.0</span></p>
+        <p class="hint">مبني على Electron ومحرك Chromium. تبويبات عائمة، شريط عنوان ذكي،
+          وخصوصية بلا تتبّع. جرّب النقر بزر الفأرة الأيمن على أي تبويب لتثبيته أو تلوين مجموعته.</p>
+      </div>
+    </div>
+
+    <!-- الإشارات المرجعية -->
+    <div class="drawer-view" id="view-bookmarks" hidden>
+      <input id="bookmarks-search" class="list-search" type="text" placeholder="ابحث في الإشارات…">
+      <div id="bookmarks-list" class="item-list"></div>
+    </div>
+
+    <!-- السجل -->
+    <div class="drawer-view" id="view-history" hidden>
+      <input id="history-search" class="list-search" type="text" placeholder="ابحث في السجل…">
+      <div id="history-list" class="item-list"></div>
+    </div>
+
+    <!-- التنزيلات -->
+    <div class="drawer-view" id="view-downloads" hidden>
+      <div id="downloads-list" class="item-list"></div>
+    </div>
+  </aside>
+
+  <!-- ============ الشريط الجانبي للإشارات ================= -->
+  <aside id="sidebar" hidden>
+    <div class="sidebar-head">
+      <button id="sidebar-close" class="icon-btn small" title="إغلاق" aria-label="إغلاق الشريط الجانبي">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <h3>الإشارات المرجعية</h3>
+    </div>
+    <input id="sidebar-search" class="sidebar-search" type="text" placeholder="ابحث في الإشارات…">
+    <div id="sidebar-list" class="sidebar-list"></div>
+  </aside>
+
+  <!-- ============ خزنة كلمات المرور ================= -->
+  <section id="pw-lock" class="pw-lock">
+    <div class="pw-lock-msg">
+      <h3>خزنة كلمات المرور</h3>
+      <p>أدخل كلمة المرور الرئيسية لفك قفل الخزنة وعرض كلمات المرور المحفوظة.</p>
+    </div>
+    <form class="pw-lock-form">
+      <input id="pw-master-input" type="password" placeholder="كلمة المرور الرئيسية" autocomplete="off">
+      <button id="pw-unlock-btn" class="btn primary wide">فك القفل</button>
+    </form>
+  </section>
+
+  <section id="pw-vault">
+    <div class="pw-head">
+      <h3>كلمات المرور المحفوظة</h3>
+      <div class="pw-stats" id="pw-stats">0 عنصر</div>
+    </div>
+    <input id="pw-search" class="list-search" type="text" placeholder="ابحث في كلمات المرور…">
+    <div id="pw-list" class="pw-list"></div>
+    <div id="pw-empty" class="pw-empty">لا توجد كلمات مرور محفوظة بعد.</div>
+    <button id="pw-add-btn" class="btn primary wide" style="margin-top:10px;">+ إضافة تسجيل دخول جديد</button>
+    <div class="pw-add-form" id="pw-add-form">
+      <input id="pw-add-site" type="text" placeholder="الموقع (example.com)">
+      <input id="pw-add-user" type="text" placeholder="اسم المستخدم">
+      <input id="pw-add-pass" type="password" placeholder="كلمة المرور">
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button id="pw-gen-btn" class="pw-gen">إنشاء كلمة مرور قوية</button>
+        <button id="pw-save-btn" class="btn primary">حفظ</button>
+        <button id="pw-cancel-btn" class="btn">إلغاء</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ مؤشر مانع الإعلانات (في مركز التحكم) ================= -->
+  <!-- يُضاف ديناميكيًا في قسم الخصوصية عبر JavaScript -->
+
+  <div id="tab-menu" hidden role="menu"></div>
+
+  <!-- قائمة سياق التبويب -->
+  <div id="tab-menu" hidden role="menu"></div>
+
+  <!-- حوار إضافة اختصار -->
+  <div id="modal-wrap" hidden>
+    <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <h3 id="modal-title">إضافة اختصار</h3>
+      <label>الاسم<input id="modal-name" type="text" placeholder="مثال: ويكيبيديا"></label>
+      <label>العنوان<input id="modal-url" type="text" dir="ltr" placeholder="example.com"></label>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn">إلغاء</button>
+        <button id="modal-ok" class="btn primary">إضافة</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" hidden role="status"></div>
+  <div id="demo-chip" hidden>وضع معاينة الواجهة — التصفح الحقيقي يعمل داخل تطبيق Electron</div>
+</div>
+
+<script src="url-utils.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

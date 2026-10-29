@@ -1,0 +1,68 @@
+{
+  "name": "nova-browser",
+  "version": "1.0.0",
+  "description": "NOVA Browser — متصفح ويب بواجهة مستقبلية مبتكرة لنظام ويندوز",
+  "main": "src/main.js",
+  "author": "NOVA Team",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/",
+    "dist:win": "electron-builder --win nsis portable",
+    "dist:mac": "electron-builder --mac dmg zip",
+    "dist:linux": "electron-builder --linux AppImage deb",
+    "dist:all": "electron-builder --win nsis portable --mac dmg zip --linux AppImage deb",
+    "dist:dir": "electron-builder --win --dir",
+    "pack": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.nova.browser",
+    "productName": "NOVA Browser",
+    "copyright": "Copyright © 2026 NOVA Team",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "NOVA-Browser-${version}-${target}.${ext}"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "NOVA-Browser-${version}-${target}.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icon.png",
+      "artifactName": "NOVA-Browser-${version}-${target}.${ext}",
+      "category": "Network;WebBrowser"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "NOVA Browser"
+    }
+  }
+}
