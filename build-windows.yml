@@ -1,0 +1,58 @@
+name: Build NOVA Browser (All Platforms)
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  test-and-build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libgtk-3-0 libxdamage1 libxkbcommon0 libasound2 libatspi2.0-0 libdrm2 libgbm1 fonts-noto-core
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Build for ${{ matrix.os }}
+        run: |
+          case "${{ matrix.os }}" in
+            windows-latest) npx electron-builder --win nsis portable --publish never ;;
+            macos-latest)   npx electron-builder --mac dmg zip --publish never ;;
+            ubuntu-latest)  npx electron-builder --linux AppImage deb --publish never ;;
+          esac
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: NOVA-Browser-${{ matrix.os }}
+          path: |
+            release/*
+          if-no-files-found: error
+
+      - name: Publish GitHub Release (on tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
